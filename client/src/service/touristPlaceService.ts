@@ -113,7 +113,7 @@ const createTouristLocation = async (touristPlace: FormData, token: string) => {
 const updateTouristLocation = async (touristID: string, touristPlace: ITouristUpdate, token: string) =>
     requestHandler("put", `/tourist-place/${touristID}`, token, touristPlace);
 
-const deleteTouristLocation = async (id: string, token: string) =>
+const deleteTouristLocation = async (id: string, token: string | null) =>
     requestHandler("delete", `/tourist-place/${id}`, token);
 
 const fetchTouristLocationsByUser = async (token: string | null) =>
