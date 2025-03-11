@@ -3,9 +3,6 @@ import { getAuth } from "firebase-admin/auth";
 import path from "path";
 
 
-const myRefreshToken = "./service-account-file.json";
-
-
 initializeApp({
     credential: cert(require(path.resolve(__dirname, "./service-account-file.json"))),
 })
