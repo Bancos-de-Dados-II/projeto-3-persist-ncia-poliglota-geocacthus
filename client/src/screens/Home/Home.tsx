@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { MapContainer, Marker, Popup, TileLayer } from "react-leaflet"
+import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet"
 import "./home.css"
 
 import touristServices, { ITouristLocationBase } from "../../service/touristPlaceService"
@@ -7,10 +7,22 @@ import Header from "../../components/Header/Header";
 import { useFetchOnce } from "../../hooks/useFetchOnce";
 import ReviewList from "../../components/Review/ReviewList";
 import LocationInfoBox from "../../components/LocalInfoBox/LocalInfoBox";
+import useGeolocation from "../../hooks/useGeolocation";
+
+
+function RecenterMap({ location }: { location: { latitude: number; longitude: number } | null }) {
+    const map = useMap();
+    if (location) {
+        map.setView([location.latitude, location.longitude], 13);
+    }
+    return null;
+}
+
 
 function Home() {
     const [touristLocations, setTouristLocations] = useState<ITouristLocationBase[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<ITouristLocationBase | null>(null);
+    const { location, error } = useGeolocation();
 
     useFetchOnce(async () => {
         try {
@@ -25,14 +37,18 @@ function Home() {
         <div className="home-container">
             <Header />
             <div className="content-main">
-                <LocationInfoBox selectedLocation={selectedLocation}/>
+                <LocationInfoBox selectedLocation={selectedLocation} />
 
                 <div className="box-map">
+                    {error && <p className="text-red-500">{error}</p>}
+
                     <MapContainer
-                        center={[-7.135, -34.876]}
+                        center={location ? [location.latitude, location.longitude] : [-7.135, -34.876]}
                         zoom={13}
                         style={{ height: "100%", width: "100%" }}
                     >
+
+                        <RecenterMap location={location} />
                         <TileLayer
                             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
