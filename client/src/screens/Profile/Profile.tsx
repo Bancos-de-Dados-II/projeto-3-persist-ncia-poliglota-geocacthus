@@ -10,12 +10,12 @@ import { useFetchOnce } from "../../hooks/useFetchOnce";
 function Profile() {
     const [locations, setLocations] = useState<IApiResponse[]>([]);
     const [editingLocation, setEditingLocation] = useState<IApiResponse | null>(null);
-    const my_token = localStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken");
 
     const fetchLocations = async () => {
         try {
-            console.log(my_token);
-            const response = await touristServices.fetchTouristLocationsByUser(my_token);
+            console.log(token);
+            const response = await touristServices.fetchTouristLocationsByUser(token);
             console.log(response);
             if (response) setLocations(response);
         } catch (error) {
@@ -24,11 +24,12 @@ function Profile() {
     };
 
     const handleEdit = (location: IApiResponse) => {
+        console.log(location);
         setEditingLocation(location);
     };
 
     const handleSave = async () => {
-        if (!my_token) {
+        if (!token) {
             console.error("Token de autenticação não encontrado");
             return;
         }
@@ -51,7 +52,8 @@ function Profile() {
             };
 
             try {
-                await touristServices.updateTouristLocation(editingLocation.id, updatedLocation, my_token);
+                console.log(editingLocation.id, updatedLocation, token);
+                await touristServices.updateTouristLocation(editingLocation._id, updatedLocation, token);
                 setLocations(prev =>
                     prev.map(location => (location.id === editingLocation.id ? { ...location, ...updatedLocation } : location))
                 );
@@ -66,7 +68,7 @@ function Profile() {
         const confirmDelete = window.confirm("Deseja realmente excluir este local turístico?");
         if (confirmDelete) {
             try {
-                await touristServices.deleteTouristLocation(id);
+                await touristServices.deleteTouristLocation(id, token);
                 setLocations(locations.filter(location => location.id !== id));
             } catch (error) {
                 console.error("Erro ao excluir local turístico:", error);
@@ -108,7 +110,7 @@ function Profile() {
                                             icon={faTrash}
                                             className="icon delete-icon"
                                             title="Delete"
-                                            onClick={() => handleDelete(location.id)}
+                                            onClick={() => handleDelete(location._id)}
                                         />
                                     </div>
                                 </div>
