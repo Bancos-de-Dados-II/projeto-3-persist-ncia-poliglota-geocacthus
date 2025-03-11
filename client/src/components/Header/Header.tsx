@@ -13,14 +13,14 @@ function Header() {
     const location = useLocation();
 
     useEffect(() => {
-        const userToken = localStorage.getItem("authToken"); // Certifique-se de que o nome da chave está correto
+        const userToken = localStorage.getItem("authToken");
         setIsLoggedIn(!!userToken);
     }, []);
 
     const handleLogout = () => {    
         logout();
-        setIsLoggedIn(false); // Atualiza o estado
-        navigate("/home"); // Redireciona para a página inicial
+        setIsLoggedIn(false);
+        navigate("/home");
     };
 
     const isActivate = (path: string) => location.pathname === path;

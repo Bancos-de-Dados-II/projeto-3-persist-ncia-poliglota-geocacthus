@@ -8,6 +8,9 @@ import { useFetchOnce } from "../../hooks/useFetchOnce";
 import ReviewList from "../../components/Review/ReviewList";
 import LocationInfoBox from "../../components/LocalInfoBox/LocalInfoBox";
 import useGeolocation from "../../hooks/useGeolocation";
+import { useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 
 function RecenterMap({ location }: { location: { latitude: number; longitude: number } | null }) {
@@ -23,15 +26,28 @@ function Home() {
     const [touristLocations, setTouristLocations] = useState<ITouristLocationBase[]>([]);
     const [selectedLocation, setSelectedLocation] = useState<ITouristLocationBase | null>(null);
     const { location, error } = useGeolocation();
+    const routerLocation = useLocation();
+    const navigate = useNavigate();
 
-    useFetchOnce(async () => {
+    const fetchLocations = async () => {
         try {
             const locations = await touristServices.fetchTouristLocations();
             if (locations) setTouristLocations(locations);
         } catch (error) {
-            console.log("Erro ao buscar locais turisticos" + (error as Error).message);
+            console.error("Erro ao buscar locais turísticos: " + (error as Error).message);
         }
-    })
+    };
+
+    useEffect(() => {
+        fetchLocations();
+    }, []);
+
+    useEffect(() => {
+        if (routerLocation.state?.refresh) {
+            fetchLocations();
+            navigate("/home", { replace: true, state: {} });
+        }
+    }, [routerLocation.state, navigate]);
 
     return (
         <div className="home-container">

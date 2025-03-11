@@ -6,10 +6,14 @@ import "./profile.css";
 import touristServices, { IApiResponse, ITouristUpdate } from "../../service/touristPlaceService";
 import Header from "../../components/Header/Header";
 import { useFetchOnce } from "../../hooks/useFetchOnce";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "../../components/ui/dialog";
+import { Button } from "../../components/ui/button";
 
 function Profile() {
     const [locations, setLocations] = useState<IApiResponse[]>([]);
     const [editingLocation, setEditingLocation] = useState<IApiResponse | null>(null);
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+    const [locationToDelete, setLocationToDelete] = useState<string | null>(null);
     const token = localStorage.getItem("authToken");
 
     const fetchLocations = async () => {
@@ -64,17 +68,24 @@ function Profile() {
         }
     };
 
-    const handleDelete = async (id: string) => {
-        const confirmDelete = window.confirm("Deseja realmente excluir este local turístico?");
-        if (confirmDelete) {
+    const handleDelete = (id: string) => {
+        setLocationToDelete(id);
+        setShowConfirmModal(true);
+    };
+
+    const confirmDelete = async () => {
+        if (locationToDelete) {
             try {
-                await touristServices.deleteTouristLocation(id, token);
-                setLocations(locations.filter(location => location.id !== id));
+                await touristServices.deleteTouristLocation(locationToDelete, token);
+                setLocations(locations.filter(location => location._id !== locationToDelete));
             } catch (error) {
                 console.error("Erro ao excluir local turístico:", error);
             }
         }
+        setShowConfirmModal(false);
+        setLocationToDelete(null);
     };
+
 
     const handleCloseModal = () => {
         setEditingLocation(null);
@@ -121,6 +132,19 @@ function Profile() {
                     )}
                 </div>
             </div>
+
+            <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirmar Exclusão</DialogTitle>
+                    </DialogHeader>
+                    <p>Tem certeza de que deseja excluir este local turístico?</p>
+                    <DialogFooter>
+                        <Button variant="destructive" onClick={confirmDelete}>Excluir</Button>
+                        <Button variant="outline" onClick={() => setShowConfirmModal(false)}>Cancelar</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
             {editingLocation && (
                 <div className="modal-overlay" onClick={handleCloseModal}>

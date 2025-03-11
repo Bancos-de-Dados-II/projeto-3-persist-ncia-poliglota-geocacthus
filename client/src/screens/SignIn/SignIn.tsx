@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../hooks/useAuth";
 import { login as loginService, LoginData } from "../../service/authService";
 import Logo from "../../../public/banner-sign.svg";
+import { ToastContainer, toast } from "react-toastify";
+
 
 import EmailIcon from "../../../public/email-icon.svg";
 import PasswordIcon from "../../../public/password-icon.svg";
@@ -33,9 +35,30 @@ function SignIn() {
             console.log(data.token);
 
             login(data.user, data.token);
-            navigate("/home");
+
+            toast.success("Login realizado com sucesso!", {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "colored",
+            });
+    
+            setTimeout(() => {
+                navigate("/home");
+            }, 2000);
         } catch (error) {
-            setErrorMessage((error as Error).message);
+            toast.error((error as Error).message, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "dark"
+            });
         }
     };
 
@@ -74,11 +97,8 @@ function SignIn() {
                         </div>
                         <button type="submit" className={styles.submitButton}>Enter</button>
                     </form>
-                    {errorMessage && (
-                        <div className={styles.errorMessage}>
-                            <p>{errorMessage}</p>
-                        </div>
-                    )}
+                    
+                    <ToastContainer />
                     <div className={styles.sectionActionAccount}>
                         <p>Don't have an account? <a href="/signup" className={styles.signUpLink}>Sign Up</a></p>
                     </div>

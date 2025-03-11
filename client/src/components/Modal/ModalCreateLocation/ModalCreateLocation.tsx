@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogD
 import { Button } from "../../ui/button";
 import { PhotoIcon } from "@heroicons/react/24/solid";
 import ModalUploadImage from "../ModalUploadImage/ModalUploadImage";
+import { ToastContainer, toast } from "react-toastify";
 
 
 interface Address {
@@ -83,7 +84,17 @@ const ModalCreateLocation: React.FC<ModalCreateLocationProps> = ({ isOpen, onClo
     useEffect(() => {
         locationService.getCountries()
             .then(data => setCountries(data.sort((a: any, b: any) => a.name.localeCompare(b.name))))
-            .catch(error => setError("Erro ao carregar países: " + error.message));
+            .catch(error => {
+                toast.error("Erro ao carregar países: " + error.message, {
+                    position: "top-right",
+                    autoClose: 3000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                    theme: "dark",
+                });
+            });
     }, []);
 
     const handleCountryChange = useCallback(async (event: string) => {
@@ -108,13 +119,33 @@ const ModalCreateLocation: React.FC<ModalCreateLocationProps> = ({ isOpen, onClo
     const handleSave = async () => {
         if (!formData.name || !formData.description || !formData.category || !formData.phone ||
             !formData.address.country || !formData.address.state || !formData.address.city || !formData.address.postalcode) {
-            setError("Por favor, preencha todos os campos obrigatórios.");
+
+            toast.error("Por favor, preencha todos os campos obrigatórios.", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "dark",
+            });
+
             return;
         }
 
         const token = localStorage.getItem("authToken");
         if (!token) {
-            setError("Token inválido ou expirado.");
+
+            toast.error("Token inválido ou expirado.", {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "dark",
+            });
+
             return;
         }
 
@@ -140,15 +171,34 @@ const ModalCreateLocation: React.FC<ModalCreateLocationProps> = ({ isOpen, onClo
         for (const [key, value] of formDataToSend.entries()) {
             console.log(key, value);
         }
-        
+
 
         try {
             await touristServices.createTouristLocation(formDataToSend, token);
-            alert("Local turístico cadastrado com sucesso!");
-            navigate("/home");
-            onClose();
+            toast.success("Local turístico cadastrado com sucesso!", {
+                position: "top-right",
+                autoClose: 2000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "colored",
+            });
+
+            setTimeout(() => {
+                navigate("/home", { state: { refresh: true } });
+                onClose();
+            }, 2000);
         } catch (error) {
-            setError(`Erro ao salvar o local turístico: ${error.message}`);
+            toast.error(`Erro ao salvar o local turístico: ${(error as Error).message}`, {
+                position: "top-right",
+                autoClose: 3000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+                theme: "dark",
+            });
         } finally {
             setLoading(false);
         }
