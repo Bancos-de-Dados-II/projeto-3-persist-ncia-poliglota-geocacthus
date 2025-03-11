@@ -8,7 +8,7 @@ import TouristPlaceService from "../services/touristPlaceService";
 import TouristPlace from "../models/touristPlace";
 
 const router = Router();
-const userService = new UserService(User);
+const userService = new UserService();
 const touristPlaceService = new TouristPlaceService(TouristPlace);
 
 
@@ -73,7 +73,7 @@ router.delete('/', authenticateToken, async (request: Request, response: Respons
 
         const user = await userService.getUserByEmail(userAuth.email);
 
-        const result = await userService.deleteUser(userAuth);
+        const result = await userService.deleteUser(user.email);
 
         response.status(200).json({
             message: "Usuário deletado com sucesso."

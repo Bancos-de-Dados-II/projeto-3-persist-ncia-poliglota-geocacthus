@@ -1,21 +1,30 @@
-import { Model, ModelStatic } from "sequelize";
+import admin from "firebase-admin";
 import User from "../models/user";
 import HttpError from "../utils/error/httpError";
+import { auth } from "../config/firebase";
+import { UserResponse } from "../@types/user";
+
 
 class UserService {
-    private userModel: ModelStatic<User>;
-
-    constructor(userModel: ModelStatic<User>) {
-        this.userModel = userModel;
+    formatUser(userRecord: admin.auth.UserRecord): UserResponse {
+        const createdAt = new Date(userRecord.metadata.creationTime).toISOString();
+        const updatedAt = new Date(userRecord.metadata.lastSignInTime || userRecord.metadata.creationTime).toISOString();
+    
+        return {
+            id: userRecord.uid,
+            name: userRecord.displayName || '',
+            email: userRecord.email || '',
+            image: userRecord.customClaims?.localImageUrl || '',
+            password: '',
+            createdAt: createdAt,
+            updatedAt: updatedAt,
+        };
     }
 
     async getAllUsers() {
         try {
-            const users = await this.userModel.findAll({
-                attributes: { exclude: ['password']},
-            });
-
-            return users;
+            const listUsersResult = await auth.listUsers();
+            return listUsersResult.users.map(this.formatUser);
         } catch (error) {
             if (error instanceof Error) {
                 throw new HttpError("Não foi possível buscar usuários", 500, error);
@@ -27,16 +36,11 @@ class UserService {
 
     async getUserById(userId: string) {
         try {
-            const user = await this.userModel.findOne({ 
-                where: { id: userId },
-                attributes: { exclude: ['senha'] } 
-            })
-
-            if (!user) {
+            const userRecord = await auth.getUser(userId);
+            if (!userRecord) {
                 throw new HttpError("Usuário não encontrado.", 404);
             }
-    
-            return user;
+            return this.formatUser(userRecord);
         } catch (error) {
             if (error instanceof HttpError) {
                 throw new HttpError(error.message, error.statusCode);
@@ -48,14 +52,11 @@ class UserService {
 
     async getUserByEmail(userEmail: string) {
         try {
-            const user = await this.userModel.findOne({ 
-                where: { email: userEmail },
-                attributes: { exclude: ['senha'] }
-            });
-
-            if (!user) throw new HttpError("Usuário não encontrado.", 404);
-
-            return user;
+            const userRecord = await auth.getUserByEmail(userEmail);
+            if (!userRecord) {
+                throw new HttpError("Usuário não encontrado.", 404);
+            }
+            return this.formatUser(userRecord);
         } catch (error) {
             if (error instanceof HttpError) {
                 throw new HttpError(error.message, error.statusCode);
@@ -65,15 +66,14 @@ class UserService {
         }
     }
 
-    async deleteUser(userAuth: User) {
+    async deleteUser(email: string) {
         try {
-            const user = await this.getUserByEmail(userAuth.email);
-
-            if(!user) {
+            const userRecord = await this.getUserByEmail(email);
+            if (!userRecord) {
                 throw new HttpError("Usuário não encontrado.", 404);
             }
 
-            await user.destroy();
+            await auth.deleteUser(userRecord.id);
         } catch (error) {
             if (error instanceof Error) {
                 throw new HttpError("Erro ao deletar usuário.", 500, new Error(error.message));
