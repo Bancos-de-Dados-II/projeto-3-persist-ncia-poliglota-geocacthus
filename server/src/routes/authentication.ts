@@ -3,6 +3,8 @@ import { Router, Request, Response, NextFunction } from "express";
 import AuthService from '../services/authService';
 import User from '../models/user';
 import FileService from '../services/fileService';
+import authenticateToken from '../utils/middlewares/authenticateToken';
+import HttpError from '../utils/error/httpError';
 
 
 const SECRET_KEY: string = process.env.SECRET_KEY || 'default_secret_key';
@@ -32,10 +34,17 @@ router.post("/register", uploadService.singleUpload, async (request: Request, re
     };
 });
 
-router.post("/login", async (request: Request, response: Response, next: NextFunction) => {
-    try {    
-        const { email, password } = request.body;
-        const { token, user } = await authService.login(email, password);
+router.post("/login", authenticateToken, async (request: Request, response: Response, next: NextFunction) => {
+    try {
+        const user = request.user;
+
+        const authHeader = request.headers.authorization;
+        if (!authHeader) {
+            throw new HttpError("Token de autorização não fornecido.", 401);
+        }
+
+        const token = authHeader.split(" ")[1];
+        
         response.status(200).json({
             message: "Usuário logado com sucesso.",
             token: token,
