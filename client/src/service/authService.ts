@@ -1,5 +1,7 @@
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { apiConfig } from "../config/api";
 import { IUser } from "./userService";
+import { auth } from "../config/firebase";
 
 
 interface LoginData {
@@ -21,10 +23,15 @@ interface LoginResponse {
 }
 
 const login = async (formData: LoginData): Promise<LoginResponse> => {
+    const userCredential = await signInWithEmailAndPassword(auth, formData.email, formData.password);
+    const idToken = await userCredential.user.getIdToken();
+    console.log(idToken);
+
     const response = await fetch(`${apiConfig.baseUrl}/auth/login`, {
         method: "POST",
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${idToken}`
         },
         body: JSON.stringify(formData)
     });
@@ -33,8 +40,6 @@ const login = async (formData: LoginData): Promise<LoginResponse> => {
         const errorData = await response.json();
         throw new Error(errorData.message || "Authentication failed");
     }
-
-    console.log(response);
 
     const data = await response.json();
     return data;
