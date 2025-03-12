@@ -56,10 +56,10 @@ function Profile() {
             };
 
             try {
-                console.log(editingLocation.id, updatedLocation, token);
+                console.log(editingLocation._id, updatedLocation, token);
                 await touristServices.updateTouristLocation(editingLocation._id, updatedLocation, token);
                 setLocations(prev =>
-                    prev.map(location => (location.id === editingLocation.id ? { ...location, ...updatedLocation } : location))
+                    prev.map(location => (location._id === editingLocation._id ? { ...location, ...updatedLocation } : location))
                 );
                 setEditingLocation(null);
             } catch (error) {
@@ -104,7 +104,7 @@ function Profile() {
                     {locations.length > 0 ? (
                         <div className="section-locations">
                             {locations.map(location => (
-                                <div className="content-card" key={location.id}>
+                                <div className="content-card" key={location._id}>
                                     <h4 className="title-card">{location.name}</h4>
                                     <h6 className="coordinates">
                                         {location.location.coordinates[1]}, {location.location.coordinates[0]}
